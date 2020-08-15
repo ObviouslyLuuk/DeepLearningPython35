@@ -62,23 +62,19 @@ class Network(object):
             test_data = list(test_data)
             n_test = len(test_data)
 
-        print_thingy = True # Print thingy
-
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
-            self.evaluate(test_data)
             for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, eta, print_thingy=print_thingy) # Print thingy
-                print_thingy = False # Print thingy
+                self.update_mini_batch(mini_batch, eta)
             if test_data:
                 print("Epoch {} : {} / {}".format(j,self.evaluate(test_data),n_test));
             else:
                 print("Epoch {} complete".format(j))
 
-    def update_mini_batch(self, mini_batch, eta, print_thingy): # Print thingy
+    def update_mini_batch(self, mini_batch, eta):
         """Update the network's weights and biases by applying
         gradient descent using backpropagation to a single mini batch.
         The ``mini_batch`` is a list of tuples ``(x, y)``, and ``eta``
@@ -91,10 +87,6 @@ class Network(object):
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         self.weights = [w-(eta/len(mini_batch))*nw
                         for w, nw in zip(self.weights, nabla_w)]
-        if print_thingy: # Print thingy
-            for i in range(100):
-                print(nabla_w[0][0][i])
-            print()
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
 
@@ -118,23 +110,7 @@ class Network(object):
         delta = self.cost_derivative(activations[-1], y) * \
             sigmoid_prime(zs[-1])
         nabla_b[-1] = delta
-        """
-        delta = [
-            [d0]
-            [d1]
-            [d2]
-            [d3]
-        ]
-        """
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
-        """
-        nabla_w[-1] = [
-            [d0a0, d0a1, d0a2, d0a3]
-            [d1a0, d1a1, d1a2, d1a3]
-            [d2a0, d2a1, d2a2, d2a3]
-            [d3a0, d3a1, d3a2, d3a3]
-        ]
-        """
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
         # l = 1 means the last layer of neurons, l = 2 is the
@@ -145,28 +121,6 @@ class Network(object):
             z = zs[-l]
             sp = sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-            """
-            weights[l+1] = [
-                [w0,0  w0,1  w0,2  w0,3]
-                [w1,0  w1,1  w1,2  w1,3]
-                [w2,0  w2,1  w2,2  w2,3]
-                [w3,0  w3,1  w3,2  w3,3]
-            ]
-
-            weights[l+1].transpose() = [
-                [w0,0  w1,0  w2,0  w3,0]
-                [w0,1  w1,1  w2,1  w3,1]
-                [w0,2  w1,2  w2,2  w3,2]
-                [w0,3  w1,3  w2,3  w3,3]
-            ]
-
-            delta = [
-                [d0w0,0 + d1w1,0 + d2w2,0 + d3w3,0]                             
-                [d0w0,1 + d1w1,1 + d2w2,1 + d3w3,1]                             
-                [d0w0,2 + d1w1,2 + d2w2,2 + d3w3,2]                             
-                [d0w0,3 + d1w1,3 + d2w2,3 + d3w3,3]                             
-            ]
-            """
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
         return (nabla_b, nabla_w)
@@ -178,10 +132,6 @@ class Network(object):
         neuron in the final layer has the highest activation."""
         test_results = [(np.argmax(self.feedforward(x)), y)
                         for (x, y) in test_data]
-        for i in range(3): # Also a print thingy
-            x, y = test_data[i]
-            print(self.feedforward(x))
-            print(y)
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
